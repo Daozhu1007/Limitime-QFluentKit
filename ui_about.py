@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QPixmap, QIcon, QDesktopServices
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from qfluentwidgets import (SubtitleLabel, BodyLabel, CardWidget,
@@ -81,13 +81,13 @@ class AboutInterface(ScrollArea):
             return btn
 
         btn_github = _make_brand_btn("github.png", "btn_github", FIF.SHARE,
-                                     "https://github.com/yourusername/yourproject")
+                                     "https://github.com/Daozhu1007/RhythmAlign")
         btn_bilibili = _make_brand_btn("bilibili.png", "btn_bilibili", FIF.SHARE,
-                                       "https://space.bilibili.com/")
+                                       "https://space.bilibili.com/477852567")
         btn_qq = _make_brand_btn("", "btn_qq", FIF.CHAT,
                                  "https://qm.qq.com/your-group-link")
         btn_donate = _make_brand_btn("", "btn_donate", FIF.HEART,
-                                     "https://afdian.com/a/yourname")
+                                     "https://afdian.com/a/Limitime")
 
         top_layout.addWidget(btn_github)
         top_layout.addWidget(btn_bilibili)
@@ -118,24 +118,6 @@ class AboutInterface(ScrollArea):
         author_layout.addWidget(email_lbl)
         author_layout.addWidget(qq_lbl)
         self.layout.addWidget(author_card)
-
-        # ---- Copyright card ----
-        copyright_title = SubtitleLabel(i18n.tr("about_cr_title"))
-        copyright_title.setStyleSheet("font-size: 18px; font-weight: bold; margin-top: 10px;")
-        self.layout.addWidget(copyright_title)
-
-        copyright_card = CardWidget()
-        copyright_layout = QVBoxLayout(copyright_card)
-        copyright_layout.setContentsMargins(20, 20, 20, 20)
-        copyright_layout.setSpacing(10)
-
-        for key in ("about_ack1", "about_ack2", "about_ack3"):
-            lbl = BodyLabel(i18n.tr(key))
-            if key == "about_ack3":
-                lbl.setStyleSheet("color: #a0a0a0; font-size: 12px;")
-            lbl.setWordWrap(True)
-            copyright_layout.addWidget(lbl)
-        self.layout.addWidget(copyright_card)
 
         self.layout.addStretch(1)
 

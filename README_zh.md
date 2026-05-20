@@ -63,14 +63,16 @@ yourproject/
 ├── ui_main.py           # 主窗口（FluentWindow）+ 品牌组件 + 布局修复
 ├── ui_home.py           # 占位首页
 ├── ui_settings.py       # 设置页面（语言切换）
-├── ui_about.py          # 关于页面（作者、版权、警告）
+├── ui_about.py          # 关于页面（作者、链接、警告）
 ├── i18n.py              # JSON 国际化引擎 + 配置持久化
 ├── locales/
 │   ├── zh_CN.json       # 中文翻译
 │   └── en_US.json       # 英文翻译
 ├── assets/
 │   ├── logo.png         # 侧边栏品牌 logo
-│   └── logo.ico         # 窗口图标
+│   ├── logo.ico         # 窗口图标
+│   ├── github.png       # GitHub 按钮图标
+│   └── bilibili.png     # B站按钮图标
 └── CLAUDE.md            # 全面的 AI Agent 指令文档
 ```
 

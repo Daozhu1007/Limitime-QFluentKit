@@ -63,14 +63,16 @@ yourproject/
 ├── ui_main.py           # MainWindow + BrandingWidget + layout fixes
 ├── ui_home.py           # Placeholder home page
 ├── ui_settings.py       # Settings page (language)
-├── ui_about.py          # About page (author, copyright, warnings)
+├── ui_about.py          # About page (author, links, warnings)
 ├── i18n.py              # JSON-based I18nManager + config persistence
 ├── locales/
 │   ├── zh_CN.json       # Chinese translations
 │   └── en_US.json       # English translations
 ├── assets/
 │   ├── logo.png         # Sidebar branding logo
-│   └── logo.ico         # Window icon
+│   ├── logo.ico         # Window icon
+│   ├── github.png       # GitHub button icon
+│   └── bilibili.png     # Bilibili button icon
 └── CLAUDE.md            # Comprehensive AI agent instructions
 ```
 

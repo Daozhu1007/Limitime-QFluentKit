@@ -123,8 +123,8 @@ class MainWindow(FluentWindow):
         # ---- Window geometry ----
         self.setWindowTitle("YourApp")
         self.setWindowIcon(QIcon(os.path.join(data_dir, "assets", "logo.ico")))
-        self.resize(1000, 650)
-        self.setMinimumSize(900, 650)
+        self.resize(1000, 660)
+        self.setMinimumSize(900, 600)
 
         # ---- Navigation sidebar ----
         self.navigationInterface.setReturnButtonVisible(False)
