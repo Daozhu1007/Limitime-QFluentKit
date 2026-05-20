@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import (SubtitleLabel, BodyLabel, CardWidget, ComboBox,
                             SwitchButton, Theme, setTheme, qconfig, InfoBar)
 
-from i18n import i18n
+from i18n import i18n, save_config, _load_config
 
 LANG_OPTIONS = {
     "zh_CN": "简体中文",
@@ -89,6 +89,10 @@ class SettingsInterface(QWidget):
         if lang_code == i18n.locale:
             return
         i18n.set_language(lang_code)
+        # Persist to config.json
+        config = _load_config()
+        config.setdefault("Settings", {})["Language"] = lang_code
+        save_config(config)
         InfoBar.success(
             i18n.tr("settings_language_changed"),
             i18n.tr("settings_language_restart"),

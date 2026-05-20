@@ -43,7 +43,7 @@ class BrandingWidget(QWidget):
         # Icon — fixed size, never resize
         self.icon_label = QLabel(self)
         self.icon_label.setStyleSheet(
-            "background-color: rgba(255, 255, 255, 0.85); border-radius: 4px; padding: 2px;"
+            "background: transparent; border: none;"
         )
         self.icon_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 

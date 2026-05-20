@@ -46,9 +46,33 @@ class I18nManager:
 
 
 # ---- Global translator instance ----
-# Default to Chinese; override by setting I18N_LANG env var
-# or change this line to "en_US" for English-default projects.
-default_lang = os.environ.get("I18N_LANG", "zh_CN")
+# Language priority: config.json > I18N_LANG env var > zh_CN fallback
+
+
+def _load_config():
+    config_path = os.path.join(app_dir, "config.json")
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def save_config(config):
+    config_path = os.path.join(app_dir, "config.json")
+    try:
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=4, ensure_ascii=False)
+    except Exception as e:
+        print(f"[i18n] Failed to save config: {e}")
+
+
+cfg = _load_config()
+default_lang = (
+    cfg.get("Settings", {}).get("Language")
+    or os.environ.get("I18N_LANG")
+    or "zh_CN"
+)
 i18n = I18nManager(default_lang)
 
 
