@@ -15,7 +15,7 @@ class HomeInterface(QWidget):
         self.layout.setContentsMargins(24, 32, 24, 24)
         self.layout.setSpacing(16)
 
-        title = SubtitleLabel(i18n.tr("Welcome"))
+        title = SubtitleLabel(i18n.tr("home_title"))
         title.setStyleSheet("font-size: 26px; font-weight: bold;")
         self.layout.addWidget(title)
 
@@ -24,10 +24,7 @@ class HomeInterface(QWidget):
         card_layout.setContentsMargins(20, 20, 20, 20)
         card_layout.setSpacing(10)
 
-        desc = BodyLabel(i18n.tr(
-            "This is a starter template built on PyQt6 + qfluentwidgets.\n"
-            "Add your own pages and register them in ui_main.py."
-        ))
+        desc = BodyLabel(i18n.tr("home_desc"))
         desc.setStyleSheet("color: #a0a0a0; font-size: 14px;")
         card_layout.addWidget(desc)
 

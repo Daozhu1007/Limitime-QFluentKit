@@ -1,0 +1,35 @@
+{
+    "tab_home": "首页",
+    "tab_settings": "设置",
+    "tab_about": "关于",
+
+    "home_title": "欢迎",
+    "home_desc": "这是一个基于 PyQt6 + qfluentwidgets 的启动模板。\n添加你自己的页面并在 ui_main.py 中注册。",
+
+    "settings_title": "设置",
+    "settings_dark_theme": "深色主题",
+    "settings_dark_theme_desc": "切换深色与浅色模式",
+
+    "about_ver": "v1.0 正式版",
+    "about_author_title": "关于作者 & 联系方式",
+    "about_author": "开发者：你的名字",
+    "about_desc": "在这里描述你的项目。",
+    "about_email": "邮箱：you@example.com",
+    "about_qq": "个人QQ：123456789",
+    "about_cr_title": "素材与版权致谢",
+    "about_ack1": "致谢内容第一行。",
+    "about_ack2": "致谢内容第二行。",
+    "about_ack3": "致谢内容第三行。",
+    "about_warn1": "本软件是免费开源的。如果你被收费，请立即退款。请访问QQ群或GitHub下载最新的官方版本。",
+    "about_warn2": "本软件仅供个人使用，用于学习Python编程。请勿将其用于任何营利性或商业用途。",
+
+    "btn_github": "GitHub",
+    "btn_bilibili": "Bilibili",
+    "btn_qq": "QQ群",
+    "btn_donate": "赞助",
+
+    "settings_language": "界面语言 (Language)",
+    "settings_language_desc": "选择软件显示的语言（重启后生效）",
+    "settings_language_changed": "语言已更改",
+    "settings_language_restart": "请重启应用以使语言设置生效"
+}

@@ -15,6 +15,7 @@ from qfluentwidgets import (FluentWindow, FluentIcon as FIF,
 from i18n import i18n
 from ui_home import HomeInterface
 from ui_settings import SettingsInterface
+from ui_about import AboutInterface
 
 
 # ---------------------------------------------------------------------------
@@ -159,11 +160,16 @@ class MainWindow(FluentWindow):
         # ---- Create interface instances ----
         self.home_interface = HomeInterface(self)
         self.settings_interface = SettingsInterface(self)
+        self.about_interface = AboutInterface(self)
 
         # ---- Register navigation routes ----
-        self.addSubInterface(self.home_interface, FIF.HOME, i18n.tr("Home"))
+        self.addSubInterface(self.home_interface, FIF.HOME, i18n.tr("tab_home"))
         self.addSubInterface(
-            self.settings_interface, FIF.SETTING, i18n.tr("Settings"),
+            self.settings_interface, FIF.SETTING, i18n.tr("tab_settings"),
+            position=NavigationItemPosition.BOTTOM
+        )
+        self.addSubInterface(
+            self.about_interface, FIF.HELP, i18n.tr("tab_about"),
             position=NavigationItemPosition.BOTTOM
         )
 

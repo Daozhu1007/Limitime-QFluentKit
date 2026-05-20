@@ -16,12 +16,19 @@ YourApp/
 ├── main.py              # Entry point, QApplication, High-DPI config
 ├── ui_main.py           # MainWindow (FluentWindow) + BrandingWidget + layout fixes
 ├── ui_home.py           # Home page (replace with your content)
-├── ui_settings.py       # Settings page template
-├── i18n.py              # Minimal i18n stub (swap for multi-language)
+├── ui_settings.py       # Settings page (theme + language)
+├── ui_about.py          # About page (author, copyright, warnings, links)
+├── i18n.py              # JSON-based I18nManager + global i18n instance
+├── locales/
+│   ├── zh_CN.json       # Chinese locale file
+│   └── en_US.json       # English locale file
 ├── assets/
 │   ├── logo.png         # Sidebar branding logo (22px height recommended)
-│   └── logo.ico         # Window icon
-└── CLAUDE.md            # This file
+│   ├── logo.ico         # Window icon
+│   ├── github.png       # (optional) GitHub button icon
+│   └── bilibili.png     # (optional) Bilibili button icon
+├── CLAUDE.md            # This file
+└── requirements.txt
 ```
 
 
@@ -34,10 +41,12 @@ main.py
               ├── NavigationInterface (left sidebar)
               │     ├── BrandingWidget (logo + title, TOP position)
               │     ├── Home tab (FIF.HOME)
-              │     └── Settings tab (FIF.SETTING, BOTTOM position)
+              │     ├── Settings tab (FIF.SETTING, BOTTOM position)
+              │     └── About tab (FIF.HELP, BOTTOM position)
               └── StackedWidget (right content area)
                     ├── HomeInterface (QWidget)
-                    └── SettingsInterface (QWidget)
+                    ├── SettingsInterface (QWidget)
+                    └── AboutInterface (ScrollArea)
 ```
 
 
@@ -141,13 +150,37 @@ The BrandingWidget already shows logo + title. Avoids duplication.
 ```python
 from i18n import i18n
 
-label = i18n.tr("my_key")            # Returns key if no translation
+label = i18n.tr("my_key")            # Returns translated text
 label = i18n.tr("Hello, {0}", name)  # Format with args
+
+# Adding a new translation key:
+# 1. Add the key to both locales/zh_CN.json and locales/en_US.json
+# 2. Use i18n.tr("your_key") in code
+# 3. The system falls back to the raw key if no translation is found
 ```
 
-The stub returns keys as-is (English). To add multi-language:
-1. Replace `i18n.py` with KSC-style `I18nManager` that reads JSON files
-2. Keep the `tr(key, *args)` signature — it's the same API
+## Adding/Changing Locale Files
+
+Locale files are JSON placed in the `locales/` directory, named `{code}.json`:
+- `zh_CN.json` — Simplified Chinese
+- `en_US.json` — English
+- Add more: `ja_JP.json`, `ko_KR.json`, etc.
+
+**Adding a new key:**
+1. Add `"my_new_key": "中文文本"` to `zh_CN.json`
+2. Add `"my_new_key": "English Text"` to `en_US.json`
+3. Use `i18n.tr("my_new_key")` in any UI file
+
+**Switching language at runtime:**
+```python
+i18n.set_language("en_US")  # switches immediately
+# UI will use new translations on next refresh
+```
+The settings page already includes a language ComboBox that calls this.
+
+The global `i18n` instance defaults to `zh_CN`. Override by setting
+the `I18N_LANG` environment variable or changing the `default_lang`
+in `i18n.py`.
 
 
 ## Common Pitfalls

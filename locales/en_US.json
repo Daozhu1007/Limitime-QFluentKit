@@ -1,0 +1,35 @@
+{
+    "tab_home": "Home",
+    "tab_settings": "Settings",
+    "tab_about": "About",
+
+    "home_title": "Welcome",
+    "home_desc": "This is a starter template built on PyQt6 + qfluentwidgets.\nAdd your own pages and register them in ui_main.py.",
+
+    "settings_title": "Settings",
+    "settings_dark_theme": "Dark Theme",
+    "settings_dark_theme_desc": "Toggle between dark and light mode",
+
+    "about_ver": "v1.0 Stable",
+    "about_author_title": "About Author & Contact",
+    "about_author": "Developer: YourName",
+    "about_desc": "Describe your project here.",
+    "about_email": "Email: you@example.com",
+    "about_qq": "QQ: 123456789",
+    "about_cr_title": "Assets & Copyright",
+    "about_ack1": "Acknowledgement line 1.",
+    "about_ack2": "Acknowledgement line 2.",
+    "about_ack3": "Acknowledgement line 3.",
+    "about_warn1": "This software is free & open-source. If you paid for this, please request a refund.",
+    "about_warn2": "For personal use only. Do not use for profit or commercial purposes.",
+
+    "btn_github": "GitHub",
+    "btn_bilibili": "Bilibili",
+    "btn_qq": "QQ Group",
+    "btn_donate": "Sponsor",
+
+    "settings_language": "Language (界面语言)",
+    "settings_language_desc": "Select interface language (Requires restart)",
+    "settings_language_changed": "Language Changed",
+    "settings_language_restart": "Please restart the application for the language change to take effect"
+}
