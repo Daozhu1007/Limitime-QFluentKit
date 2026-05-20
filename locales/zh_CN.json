@@ -7,8 +7,6 @@
     "home_desc": "这是一个基于 PyQt6 + qfluentwidgets 的启动模板。\n添加你自己的页面并在 ui_main.py 中注册。",
 
     "settings_title": "设置",
-    "settings_dark_theme": "深色主题",
-    "settings_dark_theme_desc": "切换深色与浅色模式",
 
     "about_ver": "v1.0 正式版",
     "about_author_title": "关于作者 & 联系方式",

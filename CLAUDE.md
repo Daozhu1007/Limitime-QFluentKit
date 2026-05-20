@@ -16,7 +16,7 @@ YourApp/
 ├── main.py              # Entry point, QApplication, High-DPI config
 ├── ui_main.py           # MainWindow (FluentWindow) + BrandingWidget + layout fixes
 ├── ui_home.py           # Home page (replace with your content)
-├── ui_settings.py       # Settings page (theme + language)
+├── ui_settings.py       # Settings page (language)
 ├── ui_about.py          # About page (author, copyright, warnings, links)
 ├── i18n.py              # JSON-based I18nManager + global i18n instance
 ├── locales/

@@ -7,8 +7,6 @@
     "home_desc": "This is a starter template built on PyQt6 + qfluentwidgets.\nAdd your own pages and register them in ui_main.py.",
 
     "settings_title": "Settings",
-    "settings_dark_theme": "Dark Theme",
-    "settings_dark_theme_desc": "Toggle between dark and light mode",
 
     "about_ver": "v1.0 Stable",
     "about_author_title": "About Author & Contact",
