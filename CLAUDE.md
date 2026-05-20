@@ -194,6 +194,79 @@ from qfluentwidgets import (
 ```
 
 
+## Design Patterns (learned from ok-wuthering-waves)
+
+The ok-ww project (which inspired this template) uses a **declarative config
+pattern** that eliminates repetitive widget code. When your app grows beyond
+a few settings, adopt this approach:
+
+### Declarative Settings (instead of hand-writing Cards)
+
+```python
+# BEFORE (verbose — one Card per setting, ~15 lines each):
+card = CardWidget()
+layout = QHBoxLayout(card)
+label = BodyLabel("Keep Browser Open")
+switch = SwitchButton()
+switch.setChecked(config.get("keep_open", False))
+switch.checkedChanged.connect(self._on_keep_open_changed)
+layout.addWidget(label)
+layout.addWidget(switch)
+
+# AFTER (declarative — define data, framework renders widgets):
+class SettingDef:
+    """A single setting definition. The framework renders the right widget."""
+    def __init__(self, key, label, description="", widget="switch",
+                 default=None, options=None):
+        self.key = key
+        self.label = label
+        self.description = description
+        self.widget = widget      # "switch", "combo", "text", "number"
+        self.default = default
+        self.options = options    # for combo boxes
+
+# Then in your interface:
+def _build_settings(self):
+    for s in self.setting_defs:
+        value = self.config.get(s.key, s.default)
+        if s.widget == "switch":
+            card = self._make_switch_card(s, value)
+        elif s.widget == "combo":
+            card = self._make_combo_card(s, value)
+        self.layout.addWidget(card)
+
+    self.setting_defs = [
+        SettingDef("KeepBrowserOpen", "Keep Browser Open",
+                   "Browser stays open after login", widget="switch", default=False),
+        SettingDef("Language", "Language",
+                   "Requires restart", widget="combo", options=["zh_CN", "en_US"]),
+    ]
+```
+
+The key insight from ok-ww: when every setting is `ConfigOption(name, defaults_dict,
+description)`, adding a new setting is a one-line data change — not a 15-line
+widget assembly.
+
+### Task/Feature Registration Pattern
+
+```python
+# Instead of manually calling addSubInterface for each page,
+# declare pages as data and let a loop register them:
+PAGES = [
+    (HomeInterface, FIF.HOME, "Home", NavigationItemPosition.TOP),
+    (MyFeatureInterface, FIF.DEVELOPER_TOOLS, "My Feature", NavigationItemPosition.SCROLL),
+    (SettingsInterface, FIF.SETTING, "Settings", NavigationItemPosition.BOTTOM),
+]
+
+for cls, icon, label, pos in PAGES:
+    instance = cls(self)
+    setattr(self, f"{cls.__name__.lower()}_interface", instance)
+    self.addSubInterface(instance, icon, label, position=pos)
+```
+
+This makes adding a new page a one-line data entry.
+
+
 ## Quick Start For AI Agents
 
 When asked to add a feature, follow this workflow:
@@ -201,6 +274,7 @@ When asked to add a feature, follow this workflow:
 1. **Create** `ui_featurename.py` with a `QWidget` subclass
 2. **Import** it in `ui_main.py`
 3. **Register** it via `self.addSubInterface()` with an icon, label, and position
+   - Or use the PAGES list pattern above if the project has adopted it
 4. **Test** — run `python main.py`
 
 Do NOT modify the layout constraints in `ui_main.py` unless you understand
