@@ -77,7 +77,7 @@ class AboutInterface(ScrollArea):
                     btn.setIcon(fallback_icon)
             else:
                 btn.setIcon(fallback_icon)
-            btn.clicked.connect(lambda u=url: QDesktopServices.openUrl(QUrl(u)))
+            btn.clicked.connect(lambda checked, u=url: QDesktopServices.openUrl(QUrl(u)))
             return btn
 
         btn_github = _make_brand_btn("github.png", "btn_github", FIF.SHARE,
