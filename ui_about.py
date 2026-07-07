@@ -1,31 +1,35 @@
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QPixmap, QIcon, QDesktopServices
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from qfluentwidgets import (SubtitleLabel, BodyLabel, CardWidget,
-                            PushButton, FluentIcon as FIF, ScrollArea)
+from PyQt6.QtCore import QUrl
+from PyQt6.QtGui import QDesktopServices, QIcon, QPixmap
+from PyQt6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import (
+    BodyLabel,
+    CardWidget,
+    FluentIcon as FIF,
+    InfoBar,
+    InfoBarPosition,
+    PushButton,
+    ScrollArea,
+    SubtitleLabel,
+)
 
+from app_config import (
+    APP_DISPLAY_VERSION,
+    APP_NAME,
+    BILIBILI_URL,
+    DONATE_URL,
+    GITHUB_HOME_URL,
+    QQ_GROUP_ID,
+)
 from i18n import i18n
-import os, sys
-
-if getattr(sys, 'frozen', False):
-    data_dir = sys._MEIPASS
-else:
-    data_dir = os.path.dirname(os.path.abspath(__file__))
-
-
-def _scale_pixmap_to_height(pixmap, target_height, widget):
-    """Scale a QPixmap to a target logical height, accounting for DPR."""
-    dpr = widget.devicePixelRatioF()
-    scaled = pixmap.scaledToHeight(
-        int(target_height * dpr), Qt.TransformationMode.SmoothTransformation
-    )
-    scaled.setDevicePixelRatio(dpr)
-    return scaled
+from ui_common import (
+    apply_scroll_area_theme,
+    color_style,
+    resource_path,
+    scale_pixmap_to_height,
+)
 
 
 class AboutInterface(ScrollArea):
-    """Generic About page — customize the URLs, text keys, and assets."""
-
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setObjectName("AboutInterface")
@@ -35,100 +39,132 @@ class AboutInterface(ScrollArea):
         self.layout.setSpacing(20)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.setStyleSheet("QScrollArea{background: transparent; border: none}")
+        self.apply_theme_styles()
 
-        # ---- Top card: logo + name + version + links ----
         top_card = CardWidget()
-        top_layout = QHBoxLayout(top_card)
+        top_layout = QVBoxLayout(top_card)
         top_layout.setContentsMargins(20, 20, 20, 20)
-        top_layout.setSpacing(15)
+        top_layout.setSpacing(14)
+
+        identity_layout = QHBoxLayout()
+        identity_layout.setSpacing(15)
 
         logo_label = QLabel()
         logo_label.setStyleSheet("background: transparent;")
-        logo_path = os.path.join(data_dir, "assets", "logo.png")
-        if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path)
-            if not pixmap.isNull():
-                logo_label.setPixmap(
-                    _scale_pixmap_to_height(pixmap, 60, self)
-                )
-        top_layout.addWidget(logo_label)
+        pixmap = QPixmap(resource_path("assets/logo.png"))
+        if not pixmap.isNull():
+            logo_label.setPixmap(scale_pixmap_to_height(pixmap, 60, self))
+        identity_layout.addWidget(logo_label)
 
         info_layout = QVBoxLayout()
         info_layout.setSpacing(5)
-        name_lbl = SubtitleLabel("YourApp")
-        name_lbl.setStyleSheet("font-size: 20px; font-weight: bold;")
-        ver_lbl = BodyLabel(i18n.tr("about_ver"))
-        ver_lbl.setStyleSheet("color: #a0a0a0;")
-        info_layout.addWidget(name_lbl)
-        info_layout.addWidget(ver_lbl)
+        self.name_lbl = SubtitleLabel(APP_NAME)
+        self.ver_lbl = BodyLabel(APP_DISPLAY_VERSION)
+        info_layout.addWidget(self.name_lbl)
+        info_layout.addWidget(self.ver_lbl)
         info_layout.addStretch(1)
-        top_layout.addLayout(info_layout)
-        top_layout.addStretch(1)
+        identity_layout.addLayout(info_layout)
+        identity_layout.addStretch(1)
+        top_layout.addLayout(identity_layout)
 
-        def _make_brand_btn(icon_name, text_key, fallback_icon, url):
-            btn = PushButton(i18n.tr(text_key))
-            icon_path = os.path.join(data_dir, "assets", icon_name)
-            if os.path.exists(icon_path):
-                pix = QPixmap(icon_path)
-                if not pix.isNull():
-                    btn.setIcon(QIcon(_scale_pixmap_to_height(pix, 18, self)))
-                else:
-                    btn.setIcon(fallback_icon)
-            else:
-                btn.setIcon(fallback_icon)
-            btn.clicked.connect(lambda checked, u=url: QDesktopServices.openUrl(QUrl(u)))
-            return btn
+        btn_github = self._branding_button(resource_path("assets/github.png"), "GitHub", FIF.SHARE)
+        btn_bilibili = self._branding_button(resource_path("assets/bilibili.png"), "Bilibili", FIF.SHARE)
+        btn_qq = PushButton(FIF.CHAT, i18n.tr("btn_qq"))
+        btn_donate = PushButton(FIF.HEART, i18n.tr("btn_donate"))
+        btn_github.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(GITHUB_HOME_URL)))
+        btn_bilibili.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(BILIBILI_URL)))
+        btn_qq.clicked.connect(self.copy_qq_group)
+        btn_donate.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(DONATE_URL)))
 
-        btn_github = _make_brand_btn("github.png", "btn_github", FIF.SHARE,
-                                     "https://github.com/Daozhu1007/RhythmAlign")
-        btn_bilibili = _make_brand_btn("bilibili.png", "btn_bilibili", FIF.SHARE,
-                                       "https://space.bilibili.com/477852567")
-        btn_qq = _make_brand_btn("", "btn_qq", FIF.CHAT,
-                                 "https://qm.qq.com/your-group-link")
-        btn_donate = _make_brand_btn("", "btn_donate", FIF.HEART,
-                                     "https://afdian.com/a/Limitime")
-
-        top_layout.addWidget(btn_github)
-        top_layout.addWidget(btn_bilibili)
-        top_layout.addWidget(btn_qq)
-        top_layout.addWidget(btn_donate)
+        link_layout = QHBoxLayout()
+        link_layout.setSpacing(12)
+        link_layout.addWidget(btn_github)
+        link_layout.addWidget(btn_bilibili)
+        link_layout.addWidget(btn_qq)
+        link_layout.addWidget(btn_donate)
+        link_layout.addStretch(1)
+        top_layout.addLayout(link_layout)
         self.layout.addWidget(top_card)
 
-        # ---- Author card ----
-        author_title = SubtitleLabel(i18n.tr("about_author_title"))
-        author_title.setStyleSheet("font-size: 22px; font-weight: bold; margin-top: 10px;")
-        self.layout.addWidget(author_title)
+        self.author_title = SubtitleLabel(i18n.tr("about_author_title"))
+        self.layout.addWidget(self.author_title)
 
         author_card = CardWidget()
         author_layout = QVBoxLayout(author_card)
         author_layout.setContentsMargins(20, 20, 20, 20)
         author_layout.setSpacing(10)
-
-        intro_lbl = BodyLabel(i18n.tr("about_author"))
-        intro_lbl.setStyleSheet("font-size: 16px; font-weight: bold;")
-        desc_lbl = BodyLabel(i18n.tr("about_desc"))
-        desc_lbl.setStyleSheet("color: #a0a0a0; font-size: 14px;")
+        self.intro_lbl = BodyLabel(i18n.tr("about_author"))
+        self.desc_lbl = BodyLabel(i18n.tr("about_desc"))
+        self.desc_lbl.setWordWrap(True)
         email_lbl = BodyLabel(i18n.tr("about_email"))
         qq_lbl = BodyLabel(i18n.tr("about_qq"))
-
-        author_layout.addWidget(intro_lbl)
-        author_layout.addWidget(desc_lbl)
+        author_layout.addWidget(self.intro_lbl)
+        author_layout.addWidget(self.desc_lbl)
         author_layout.addSpacing(10)
         author_layout.addWidget(email_lbl)
         author_layout.addWidget(qq_lbl)
         self.layout.addWidget(author_card)
 
+        self.copyright_title = SubtitleLabel(i18n.tr("about_cr_title"))
+        self.layout.addWidget(self.copyright_title)
+
+        copyright_card = CardWidget()
+        copyright_layout = QVBoxLayout(copyright_card)
+        copyright_layout.setContentsMargins(20, 20, 20, 20)
+        copyright_layout.setSpacing(10)
+        ack_labels = []
+        for key in ("about_ack1", "about_ack2", "about_ack3"):
+            label = BodyLabel(i18n.tr(key))
+            label.setWordWrap(True)
+            copyright_layout.addWidget(label)
+            ack_labels.append(label)
+        self.ack3 = ack_labels[-1]
+        self.layout.addWidget(copyright_card)
+
         self.layout.addStretch(1)
 
-        # ---- Warnings ----
         warn_container = QVBoxLayout()
         warn_container.setSpacing(6)
         warn_container.setContentsMargins(0, 0, 0, 0)
-
-        for key in ("about_warn1", "about_warn2"):
-            warn = BodyLabel(i18n.tr(key))
-            warn.setStyleSheet("color: #ff5252; font-weight: bold; font-size: 14px;")
-            warn.setWordWrap(True)
-            warn_container.addWidget(warn)
+        self.warn1 = BodyLabel(i18n.tr("about_warn1"))
+        self.warn2 = BodyLabel(i18n.tr("about_warn2"))
+        self.warn1.setWordWrap(True)
+        self.warn2.setWordWrap(True)
+        warn_container.addWidget(self.warn1)
+        warn_container.addWidget(self.warn2)
         self.layout.addLayout(warn_container)
+        self.apply_theme_styles()
+
+    def _branding_button(self, icon_path, text, fallback_icon):
+        btn = PushButton(text)
+        if icon_path and QPixmap(icon_path).isNull() is False:
+            pixmap = QPixmap(icon_path)
+            btn.setIcon(QIcon(scale_pixmap_to_height(pixmap, 18, self)))
+        else:
+            btn.setIcon(fallback_icon)
+        return btn
+
+    def apply_theme_styles(self):
+        apply_scroll_area_theme(self, self.view)
+        if not hasattr(self, "name_lbl"):
+            return
+        self.name_lbl.setStyleSheet(color_style("font-size: 20px; font-weight: bold;", "text"))
+        self.ver_lbl.setStyleSheet(color_style("", "muted"))
+        self.author_title.setStyleSheet(color_style("font-size: 22px; font-weight: bold; margin-top: 10px;", "text"))
+        self.intro_lbl.setStyleSheet(color_style("font-size: 16px; font-weight: bold;", "text"))
+        self.desc_lbl.setStyleSheet(color_style("font-size: 14px;", "muted"))
+        self.copyright_title.setStyleSheet(color_style("font-size: 18px; font-weight: bold; margin-top: 10px;", "text"))
+        self.ack3.setStyleSheet(color_style("font-size: 12px;", "muted"))
+        warning_style = color_style("font-weight: bold; font-size: 14px;", "danger")
+        self.warn1.setStyleSheet(warning_style)
+        self.warn2.setStyleSheet(warning_style)
+
+    def copy_qq_group(self):
+        QApplication.clipboard().setText(QQ_GROUP_ID)
+        InfoBar.success(
+            title=i18n.tr("msg_success"),
+            content=i18n.tr("msg_qq_group_copied", QQ_GROUP_ID),
+            parent=self,
+            position=InfoBarPosition.TOP,
+            duration=2500,
+        )
