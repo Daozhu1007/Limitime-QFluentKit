@@ -1,77 +1,66 @@
 import sys
-import os
 
-if getattr(sys, 'frozen', False):
-    data_dir = sys._MEIPASS
-else:
-    data_dir = os.path.dirname(os.path.abspath(__file__))
-
-from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy
-from qfluentwidgets import (FluentWindow, FluentIcon as FIF,
-                            NavigationItemPosition, Theme, setTheme, qconfig)
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QApplication, QHBoxLayout, QLabel, QSizePolicy, QWidget
+from qfluentwidgets import (
+    FluentIcon as FIF,
+    FluentWindow,
+    NavigationItemPosition,
+    qconfig,
+    setTheme,
+)
 
+from app_config import APP_NAME, APP_USER_MODEL_ID
 from i18n import i18n
+from ui_about import AboutInterface
 from ui_home import HomeInterface
 from ui_settings import SettingsInterface
-from ui_about import AboutInterface
+from ui_utils import (
+    color_style,
+    load_app_icon,
+    resource_path,
+    scale_pixmap_to_height,
+    theme_color,
+    theme_value,
+)
 
-
-# ---------------------------------------------------------------------------
-# BrandingWidget — logo + title in the navigation sidebar
-# ---------------------------------------------------------------------------
 
 class BrandingWidget(QWidget):
-    """A clickable branding badge that lives at the top of the nav sidebar.
-
-    Key layout constraints (DO NOT REMOVE):
-      - icon_label: Fixed size policy    → logo never resizes
-      - title_label: Minimum horizontal  → text never clips below its natural width
-      - setWordWrap(False)              → no multi-line fallback
-    """
-
     clicked = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedHeight(48)
         self.layout = QHBoxLayout(self)
-        self.layout.setContentsMargins(16, 12, 0, 0)
+        self.layout.setContentsMargins(12, 10, 0, 0)
         self.layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
-        # Icon — fixed size, never resize
         self.icon_label = QLabel(self)
-        self.icon_label.setStyleSheet(
-            "background: transparent; border: none;"
-        )
+        self.icon_label.setStyleSheet("background: transparent; border: none;")
         self.icon_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
-        logo_path = os.path.join(data_dir, "assets", "logo.png")
-        if not os.path.exists(logo_path):
-            logo_path = os.path.join(data_dir, "assets", "logo.jpg")
+        for name in ("logo.png", "logo.jpg"):
+            pixmap = QPixmap(resource_path(f"assets/{name}"))
+            if not pixmap.isNull():
+                self.icon_label.setPixmap(scale_pixmap_to_height(pixmap, 22, self))
+                break
 
-        if os.path.exists(logo_path):
-            pixmap = QPixmap(logo_path)
-            dpr = self.devicePixelRatioF()
-            scaled_pixmap = pixmap.scaledToHeight(
-                int(22 * dpr), Qt.TransformationMode.SmoothTransformation
-            )
-            scaled_pixmap.setDevicePixelRatio(dpr)
-            self.icon_label.setPixmap(scaled_pixmap)
-
-        # Title — minimum width = natural text width, no wrapping
-        self.title_label = QLabel("YourApp", self)
-        self.title_label.setStyleSheet(
-            "font-size: 15px; font-weight: bold; color: white; background: transparent; margin-left: 10px;"
-        )
+        self.title_label = QLabel(APP_NAME, self)
         self.title_label.setWordWrap(False)
         self.title_label.setSizePolicy(
-            QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Preferred
+            QSizePolicy.Policy.Minimum,
+            QSizePolicy.Policy.Preferred,
         )
-
         self.layout.addWidget(self.icon_label)
         self.layout.addWidget(self.title_label)
+        self.update_theme_styles()
+
+    def update_theme_styles(self):
+        self.title_label.setStyleSheet(
+            "font-size: 15px; font-weight: bold; color: white; "
+            "background: transparent; margin-left: 10px;"
+        )
 
     def setSelected(self, selected: bool):
         pass
@@ -80,63 +69,27 @@ class BrandingWidget(QWidget):
         pass
 
 
-# ---------------------------------------------------------------------------
-# MainWindow — the application shell
-# ---------------------------------------------------------------------------
-
 class MainWindow(FluentWindow):
-    """Pre-configured FluentWindow with sidebar squeeze protection.
-
-    Critical settings (DO NOT REMOVE without understanding the consequences):
-
-    1. setMinimumSize(900, 650)
-       Prevents the window from shrinking below a safe size where content
-       would be unusable.
-
-    2. navigationInterface.setExpandWidth(207)
-       Sidebar width in expanded mode. Adjust to fit your branding text.
-
-    3. navigationInterface.panel.setMinimumExpandWidth(800)
-       *** THIS IS THE KEY FIX ***
-       NavigationPanel has TWO independent collapse thresholds:
-         - expand() method:   minimumExpandWidth + expandWidth - 322
-         - eventFilter(Resize): minimumExpandWidth directly (default 1008!)
-       The Resize handler fires on every window resize. Without this fix,
-       any window width < 1008px triggers automatic sidebar collapse.
-       Setting minimumExpandWidth below our setMinimumSize(900) prevents
-       the auto-collapse entirely.
-
-    4. menuButton removal
-       Prevents users from manually toggling the sidebar into compact mode.
-
-    5. Title bar icon/label hidden
-       The BrandingWidget already shows logo + title — avoid duplication.
-    """
+    """Application shell with production-proven QFluentWidgets defaults."""
 
     def __init__(self):
+        setTheme(qconfig.themeMode.value)
         super().__init__()
 
-        # ---- Theme ----
-        setTheme(Theme.DARK)
-        qconfig.set(qconfig.themeMode, Theme.DARK)
-
-        # ---- Window geometry ----
-        self.setWindowTitle("YourApp")
-        self.setWindowIcon(QIcon(os.path.join(data_dir, "assets", "logo.ico")))
+        self.setWindowTitle(APP_NAME)
+        self.setWindowIcon(load_app_icon())
         self.resize(1000, 660)
         self.setMinimumSize(900, 600)
 
-        # ---- Navigation sidebar ----
         self.navigationInterface.setReturnButtonVisible(False)
         self.navigationInterface.setExpandWidth(207)
+        self.navigationInterface.panel.setMinimumExpandWidth(800)
 
-        # ---- Hide default title bar decorations ----
-        if hasattr(self.titleBar, 'titleLabel'):
+        if hasattr(self.titleBar, "titleLabel"):
             self.titleBar.titleLabel.hide()
-        if hasattr(self.titleBar, 'iconLabel'):
+        if hasattr(self.titleBar, "iconLabel"):
             self.titleBar.iconLabel.hide()
 
-        # ---- Remove menu button (prevent manual collapse) ----
         try:
             nav_panel = self.navigationInterface.panel
             nav_panel.vBoxLayout.removeWidget(nav_panel.menuButton)
@@ -145,54 +98,82 @@ class MainWindow(FluentWindow):
         except Exception:
             pass
 
-        # ---- Prevent auto-collapse on window resize ----
-        self.navigationInterface.panel.setMinimumExpandWidth(800)
-
-        # ---- Branding widget (logo + title in sidebar) ----
         self.branding_widget = BrandingWidget(self)
         self.navigationInterface.addWidget(
-            routeKey='branding',
+            routeKey="branding",
             widget=self.branding_widget,
             onClick=None,
-            position=NavigationItemPosition.TOP
+            position=NavigationItemPosition.TOP,
         )
 
-        # ---- Create interface instances ----
         self.home_interface = HomeInterface(self)
         self.settings_interface = SettingsInterface(self)
         self.about_interface = AboutInterface(self)
 
-        # ---- Register navigation routes ----
         self.addSubInterface(self.home_interface, FIF.HOME, i18n.tr("tab_home"))
         self.addSubInterface(
-            self.settings_interface, FIF.SETTING, i18n.tr("tab_settings"),
-            position=NavigationItemPosition.BOTTOM
+            self.settings_interface,
+            FIF.SETTING,
+            i18n.tr("tab_settings"),
+            position=NavigationItemPosition.BOTTOM,
         )
         self.addSubInterface(
-            self.about_interface, FIF.HELP, i18n.tr("tab_about"),
-            position=NavigationItemPosition.BOTTOM
+            self.about_interface,
+            FIF.HELP,
+            i18n.tr("tab_about"),
+            position=NavigationItemPosition.BOTTOM,
         )
 
-        # ---- Expand sidebar (must be last) ----
-        self.navigationInterface.expand()
+        self.navigationInterface.expand(False)
+        qconfig.themeChangedFinished.connect(self.apply_theme_styles)
+        self.apply_theme_styles()
+
+    def apply_theme_styles(self):
+        self._apply_window_theme_styles()
+        for widget in (
+            self.branding_widget,
+            self.home_interface,
+            self.settings_interface,
+            self.about_interface,
+        ):
+            if hasattr(widget, "apply_theme_styles"):
+                widget.apply_theme_styles()
+            elif hasattr(widget, "update_theme_styles"):
+                widget.update_theme_styles()
+
+    def _apply_window_theme_styles(self):
+        self.setCustomBackgroundColor("#f0f4f9", "#202020")
+        stacked_bg = theme_color("stacked")
+        border_color = theme_value("rgba(255, 255, 255, 0.08)", "rgba(0, 0, 0, 0.08)")
+
+        self.stackedWidget.setStyleSheet(f"""
+            StackedWidget {{
+                border: 1px solid {border_color};
+                border-right: none;
+                border-bottom: none;
+                border-top-left-radius: 10px;
+                background-color: {stacked_bg};
+            }}
+            StackedWidget[isTransparent=true] {{
+                background-color: {stacked_bg};
+                border: none;
+            }}
+        """)
+        self.stackedWidget.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.stackedWidget.view.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.stackedWidget.view.setStyleSheet(f"background-color: {stacked_bg}; border: none;")
 
 
-# ---------------------------------------------------------------------------
-# Entry point (use main.py instead for production)
-# ---------------------------------------------------------------------------
-
-if __name__ == '__main__':
-    import ctypes
-
+if __name__ == "__main__":
     try:
-        appid = 'yourcompany.yourapp.v1'
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
     except Exception:
         pass
 
-    from PyQt6.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.join(data_dir, "assets", "logo.ico")))
+    app.setWindowIcon(load_app_icon())
     window = MainWindow()
     window.show()
     sys.exit(app.exec())

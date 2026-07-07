@@ -1,70 +1,86 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from qfluentwidgets import (SubtitleLabel, BodyLabel, CardWidget, ComboBox,
-                            InfoBar)
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import (
+    FluentIcon as FIF,
+    InfoBar,
+    InfoBarPosition,
+    OptionsSettingCard,
+    ScrollArea,
+    SettingCardGroup,
+    SubtitleLabel,
+    qconfig,
+    setTheme,
+)
 
-from i18n import i18n, save_config, _load_config
-
-LANG_OPTIONS = {
-    "zh_CN": "简体中文",
-    "en_US": "English",
-}
+from app_config import LANG_OPTIONS, THEME_TEXT_KEYS, cfg
+from i18n import i18n
+from ui_utils import apply_scroll_area_theme, color_style
 
 
-class SettingsInterface(QWidget):
-    """Settings page — extend with your own options."""
+class SettingsInterface(ScrollArea):
+    """Template settings page using native QFluentWidgets setting cards."""
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setObjectName("SettingsInterface")
-        self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(24, 32, 24, 24)
-        self.layout.setSpacing(20)
+        self.view = QWidget(self)
+        self.layout = QVBoxLayout(self.view)
+        self.layout.setContentsMargins(24, 24, 24, 24)
+        self.layout.setSpacing(16)
+        self.setWidget(self.view)
+        self.setWidgetResizable(True)
 
-        title = SubtitleLabel(i18n.tr("settings_title"))
-        title.setStyleSheet("font-size: 26px; font-weight: bold;")
-        self.layout.addWidget(title)
+        self.title = SubtitleLabel(i18n.tr("settings_title"))
+        self.layout.addWidget(self.title)
 
-        # --- Language ---
-        lang_card = CardWidget()
-        lang_layout = QHBoxLayout(lang_card)
-        lang_layout.setContentsMargins(20, 16, 20, 16)
-        lang_layout.setSpacing(15)
+        self.general_group = SettingCardGroup(i18n.tr("settings_general"), self.view)
 
-        lang_text_layout = QVBoxLayout()
-        lang_text_layout.setSpacing(4)
-        lang_title = BodyLabel(i18n.tr("settings_language"))
-        lang_title.setStyleSheet("font-size: 14px;")
-        lang_desc = BodyLabel(i18n.tr("settings_language_desc"))
-        lang_desc.setStyleSheet("color: #a0a0a0; font-size: 12px;")
-        lang_text_layout.addWidget(lang_title)
-        lang_text_layout.addWidget(lang_desc)
+        self.theme_card = OptionsSettingCard(
+            configItem=qconfig.themeMode,
+            icon=FIF.PALETTE,
+            title=i18n.tr("settings_theme"),
+            content=i18n.tr("settings_theme_desc"),
+            texts=[i18n.tr(THEME_TEXT_KEYS[theme]) for theme in qconfig.themeMode.options],
+            parent=self.general_group,
+        )
+        self.theme_card.optionChanged.connect(self._on_theme_changed)
 
-        self.lang_combo = ComboBox()
-        for code, label in LANG_OPTIONS.items():
-            self.lang_combo.addItem(label, userData=code)
-        current_idx = list(LANG_OPTIONS.keys()).index(i18n.locale)
-        self.lang_combo.setCurrentIndex(current_idx)
-        self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
+        self.lang_card = OptionsSettingCard(
+            configItem=cfg.language,
+            icon=FIF.LANGUAGE,
+            title=i18n.tr("settings_language"),
+            content=i18n.tr("settings_language_desc"),
+            texts=[i18n.tr(LANG_OPTIONS[code]) for code in LANG_OPTIONS],
+            parent=self.general_group,
+        )
+        self.lang_card.optionChanged.connect(self._on_lang_changed)
 
-        lang_layout.addLayout(lang_text_layout, 1)
-        lang_layout.addWidget(self.lang_combo)
-        self.layout.addWidget(lang_card)
-
+        self.general_group.addSettingCard(self.theme_card)
+        self.general_group.addSettingCard(self.lang_card)
+        self.layout.addWidget(self.general_group)
         self.layout.addStretch(1)
+        self.apply_theme_styles()
 
-    def _on_lang_changed(self, index):
-        lang_code = self.lang_combo.itemData(index)
+    def _setting_value(self, config_item):
+        return getattr(config_item, "value", config_item)
+
+    def _on_theme_changed(self, config_item):
+        setTheme(self._setting_value(config_item), save=True)
+        window = self.window()
+        if hasattr(window, "apply_theme_styles"):
+            window.apply_theme_styles()
+
+    def _on_lang_changed(self, config_item):
+        lang_code = self._setting_value(config_item)
         if lang_code == i18n.locale:
             return
-        i18n.set_language(lang_code)
-        # Persist to config.json
-        config = _load_config()
-        config.setdefault("Settings", {})["Language"] = lang_code
-        save_config(config)
         InfoBar.success(
-            i18n.tr("settings_language_changed"),
-            i18n.tr("settings_language_restart"),
+            title=i18n.tr("settings_language_changed"),
+            content=i18n.tr("settings_language_restart"),
             duration=5000,
-            parent=self
+            parent=self,
+            position=InfoBarPosition.TOP,
         )
+
+    def apply_theme_styles(self):
+        apply_scroll_area_theme(self, self.view)
+        self.title.setStyleSheet(color_style("font-size: 26px; font-weight: bold;", "text"))

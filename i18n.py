@@ -1,16 +1,9 @@
-"""
-JSON-based i18n engine — drop-in compatible with KSC & RhythmAlign.
-Loads locale files from the locales/ directory, falls back to raw keys.
-"""
+"""JSON-based i18n engine for the desktop app template."""
 
-import sys
-import os
 import json
+import os
 
-if getattr(sys, 'frozen', False):
-    app_dir = os.path.dirname(sys.executable)
-else:
-    app_dir = os.path.dirname(os.path.abspath(__file__))
+from app_config import app_dir, cfg
 
 
 class I18nManager:
@@ -23,7 +16,7 @@ class I18nManager:
         lang_file = os.path.join(app_dir, "locales", f"{self.locale}.json")
         try:
             if os.path.exists(lang_file):
-                with open(lang_file, 'r', encoding='utf-8') as f:
+                with open(lang_file, "r", encoding="utf-8") as f:
                     self.texts = json.load(f)
             else:
                 self.texts = {}
@@ -35,9 +28,9 @@ class I18nManager:
         text = self.texts.get(key, key)
         if args:
             try:
-                text = text.format(*args)
+                return text.format(*args)
             except Exception:
-                pass
+                return text
         return text
 
     def set_language(self, locale_code):
@@ -45,14 +38,10 @@ class I18nManager:
         self.load_language()
 
 
-# ---- Global translator instance ----
-# Language priority: config.json > I18N_LANG env var > zh_CN fallback
-
-
 def _load_config():
     config_path = os.path.join(app_dir, "config.json")
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
@@ -61,22 +50,23 @@ def _load_config():
 def save_config(config):
     config_path = os.path.join(app_dir, "config.json")
     try:
-        with open(config_path, 'w', encoding='utf-8') as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=4, ensure_ascii=False)
     except Exception as e:
         print(f"[i18n] Failed to save config: {e}")
 
 
-cfg = _load_config()
+raw_config = _load_config()
 default_lang = (
-    cfg.get("Settings", {}).get("Language")
+    raw_config.get("Settings", {}).get("Language")
     or os.environ.get("I18N_LANG")
+    or cfg.language.value
     or "zh_CN"
 )
 i18n = I18nManager(default_lang)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(f"Locale: {i18n.locale}")
     print(i18n.tr("tab_home"))
     print(i18n.tr("about_ver"))
