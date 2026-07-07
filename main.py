@@ -2,10 +2,8 @@ import sys
 import os
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
-
-from app_config import WINDOWS_APP_USER_MODEL_ID
-from ui_common import load_app_icon
 
 if getattr(sys, 'frozen', False):
     data_dir = sys._MEIPASS
@@ -20,7 +18,7 @@ if __name__ == '__main__':
     try:
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            WINDOWS_APP_USER_MODEL_ID
+            'yourcompany.yourapp.v1'
         )
     except Exception:
         pass
@@ -33,7 +31,7 @@ if __name__ == '__main__':
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
 
     app = QApplication(sys.argv)
-    app.setWindowIcon(load_app_icon())
+    app.setWindowIcon(QIcon(os.path.join(data_dir, "assets", "logo.ico")))
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
